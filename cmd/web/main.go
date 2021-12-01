@@ -11,28 +11,38 @@ import (
 
 const PORT_NUMBER = ":8080"
 
-
 func main() {
 
 	var app config.AppConfig
 
 	tc, err := render.CreateTemplateCache()
-	if err != nil{
+	if err != nil {
 		log.Fatal("Cannot create template cache")
 	}
 
 	app.TemplateCache = tc
+	app.UseCache = false
+
+	repo := handlers.NewRepo(&app)
+	handlers.NewHandlers(repo)
 
 	render.NewTemplate(&app)
 
-	http.HandleFunc("/", handlers.Home)
-	http.HandleFunc("/about", handlers.About)
+	//http.HandleFunc("/", handlers.Repo.Home)
+	//http.HandleFunc("/about", handlers.Repo.About)
 
 	fmt.Println(fmt.Sprintf("Starting application on port %s", PORT_NUMBER))
 
-	http.ListenAndServe(PORT_NUMBER, nil)
-}
+	//http.ListenAndServe(PORT_NUMBER, nil)
 
+	srv := &http.Server{
+		Addr:    PORT_NUMBER,
+		Handler: routes(&app),
+	}
+
+	err = srv.ListenAndServe()
+	log.Fatal(err)
+}
 
 /*
 package main

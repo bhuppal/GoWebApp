@@ -5,9 +5,9 @@ import (
 	"log"
 )
 
-// AppConfig holds that application config
+// AppConfig holds the application config
 type AppConfig struct {
-	useCache bool
+	UseCache      bool
 	TemplateCache map[string]*template.Template
-	InfoLog *log.Logger
+	InfoLog       *log.Logger
 }

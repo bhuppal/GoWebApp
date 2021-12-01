@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/bhuppal/go/goweb/pkg/config"
+	"github.com/bhuppal/go/goweb/pkg/modals"
 	"html/template"
 	"log"
 	"net/http"
@@ -14,41 +15,52 @@ var functions = template.FuncMap{}
 
 var app *config.AppConfig
 
+// NewTemplate NewTemplates set the config for th template package
 func NewTemplate(a *config.AppConfig) {
 	app = a
 }
 
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+func AddDefaultData(td *modals.TemplateData) *modals.TemplateData {
+	return td
+}
 
-	tc := app.TemplateCache
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *modals.TemplateData) {
+	var tc map[string]*template.Template
+
+	if app.UseCache {
+		tc = app.TemplateCache
+	} else {
+		tc, _ = CreateTemplateCache()
+	}
 
 	/*
-	tc, err := CreateTemplateCache()
-	if err != nil {
-		log.Fatal(err)
-	}
-*/
+		tc, err := CreateTemplateCache()
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 	t, ok := tc[tmpl]
 	if !ok {
 		log.Fatal("Could not get template from cache")
 	}
 
 	buf := new(bytes.Buffer)
-	_ = t.Execute(buf, nil)
+	td = AddDefaultData(td)
+
+	_ = t.Execute(buf, td)
 	_, err := buf.WriteTo(w)
 	if err != nil {
 		fmt.Println("Error writing template to browser", err)
 	}
 	/*
-	parsedTemplate, _ := template.ParseFiles("./templates/" + tmpl)
-	err = parsedTemplate.Execute(w, nil)
-	if err != nil {
-		fmt.Println("Error occured during parsing template file ", err)
-	}
+		parsedTemplate, _ := template.ParseFiles("./templates/" + tmpl)
+		err = parsedTemplate.Execute(w, nil)
+		if err != nil {
+			fmt.Println("Error occurred during parsing template file ", err)
+		}
 	*/
 
 }
-
 
 func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
